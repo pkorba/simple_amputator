@@ -8,6 +8,8 @@ from urllib.parse import urlparse
 class SimpleAmputatorBot(Plugin):
     @command.passive("(https?://\S+)", multiple=True)
     async def amputate(self, evt: MessageEvent, matches: list[tuple[str, str]]) -> None:
+        if evt.sender == self.client.mxid:
+            return
         await evt.mark_read()
         deamped_urls = []
         for url in matches:
