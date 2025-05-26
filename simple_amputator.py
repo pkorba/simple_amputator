@@ -5,8 +5,9 @@ from mautrix.types import TextMessageEventContent, MessageType, Format
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse
 
+
 class SimpleAmputatorBot(Plugin):
-    @command.passive("(https?://\S+)", multiple=True)
+    @command.passive(r"(https?://\S+)", multiple=True)
     async def amputate(self, evt: MessageEvent, matches: list[tuple[str, str]]) -> None:
         if evt.sender == self.client.mxid:
             return
@@ -20,9 +21,8 @@ class SimpleAmputatorBot(Plugin):
         if not deamped_urls:
             return
 
-        html = f"""<strong>Link Cleaner</strong><br>
-        It looks like your message contains a Google AMP link. Here, I cleaned it up for you:<br>•
-        {"<br>•".join(deamped_urls)}"""
+        html = f"""It looks like your message contains a Google AMP link. Here, I've cleaned it up for you:<br>•
+        {"<br>• ".join(deamped_urls)}"""
         content = TextMessageEventContent(
             msgtype=MessageType.TEXT,
             format=Format.HTML,
@@ -64,5 +64,4 @@ class SimpleAmputatorBot(Plugin):
             url_string2 = url_string2[:-1]
         url1 = urlparse(url_string)
         url2 = urlparse(url_string2)
-        return url1.netloc == url2.netloc and url1.path == url2.path \
-            and url1.query == url2.query and url1.params == url2.params
+        return url1.netloc == url2.netloc and url1.path == url2.path and url1.query == url2.query and url1.params == url2.params
