@@ -32,7 +32,8 @@ class SimpleAmputatorBot(Plugin):
     async def _extract_canonical_url_from_amp(self, url: str) -> str | None:
         try:
             async with self.http.get(url) as response:
-                if response.status == 200:
+                self.log.info(f"Content type: {response.content_type}")
+                if response.status == 200 and response.content_type in ["text/html", "application/xhtml+xml", "application/xml"]:
                     text = await response.text()
                 else:
                     return None
