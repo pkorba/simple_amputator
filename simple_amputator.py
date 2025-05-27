@@ -29,16 +29,16 @@ class SimpleAmputatorBot(Plugin):
             formatted_body=f"{html}")
         await evt.respond(content)
 
-    async def _extract_canonical_url_from_amp(self, url: str) -> str | None:
+    async def _extract_canonical_url_from_amp(self, url: str) -> str:
         try:
             async with self.http.get(url) as response:
                 if response.status == 200 and response.content_type in ["text/html", "application/xhtml+xml", "application/xml"]:
                     text = await response.text()
                 else:
-                    return None
+                    return ""
         except ClientError as e:
             print(f"Connection Error: {e}")
-            return None
+            return ""
 
         soup = BeautifulSoup(text, "html.parser")
         amp_link = None
@@ -52,7 +52,7 @@ class SimpleAmputatorBot(Plugin):
         if soup.find("html").has_attr("amp") or soup.find("html").has_attr("⚡") or await self._urls_match(amp_link, url):
             if canonical_link and canonical_link != amp_link:
                 return canonical_link
-        return None
+        return ""
 
     @staticmethod
     async def _urls_match(url_string: str, url_string2: str) -> bool:
