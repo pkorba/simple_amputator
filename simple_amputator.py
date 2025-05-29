@@ -23,19 +23,27 @@ class SimpleAmputatorBot(Plugin):
 
         html = f"""It looks like your message contains a Google AMP link. Here, I've cleaned it up for you:<br>•
         {"<br>• ".join(deamped_urls)}"""
+        body = f"It looks like your message contains a Google AMP link.. Here, I've cleaned it up for you:\n {"\n• ".join(deamped_urls)}"
         content = TextMessageEventContent(
-            msgtype=MessageType.TEXT,
+            msgtype=MessageType.NOTICE,
             format=Format.HTML,
+            body=body,
             formatted_body=f"{html}")
         await evt.respond(content)
 
     async def _extract_canonical_url_from_amp(self, url: str) -> str:
+        headers = {
+            "Sec-GPC": "1",
+            "accept-encoding": "gzip, deflate, br, zstd",
+            "accept-language": "pl,en-US;q=0.7,en;q=0.3",
+            "user-agent": "Mozilla/5.0 (X11; Linux x86_64; rv:138.0) Gecko/20100101 Firefox/138.0"
+        }
         try:
-            async with self.http.get(url) as response:
-                if response.status == 200 and response.content_type in ["text/html", "application/xhtml+xml", "application/xml"]:
-                    text = await response.text()
-                else:
-                    return ""
+            response = await self.http.get(url, headers=headers, raise_for_status=True)
+            if response.content_type in ["text/html", "application/xhtml+xml", "application/xml"]:
+                text = await response.text()
+            else:
+                return ""
         except ClientError as e:
             print(f"Connection Error: {e}")
             return ""
