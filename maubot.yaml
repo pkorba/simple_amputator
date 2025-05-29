@@ -1,7 +1,9 @@
 maubot: 0.1.0
 id: com.github.pkorba.simple_amputator
-version: 1.0.3
+version: 1.0.4
 license: MIT
 modules:
   - simple_amputator
+dependencies:
+  - beautifulsoup4 >= 4.13.4
 main_class: SimpleAmputatorBot
