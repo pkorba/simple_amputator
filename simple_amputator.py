@@ -45,7 +45,7 @@ class SimpleAmputatorBot(Plugin):
             else:
                 return ""
         except ClientError as e:
-            print(f"Connection Error: {e}")
+            self.log.error(f"Connection Error: {e}")
             return ""
 
         soup = BeautifulSoup(text, "html.parser")
