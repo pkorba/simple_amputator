@@ -14,29 +14,37 @@ class SimpleAmputatorBot(Plugin):
         await evt.mark_read()
         deamped_urls = []
         for url in matches:
-            deamped_url = await self._extract_canonical_url_from_amp(url[1])
+            deamped_url = await self._extract_canonical_url(url[1])
             if deamped_url:
                 deamped_urls.append(deamped_url)
 
         if not deamped_urls:
             return
 
-        html = f"""It looks like your message contains a Google AMP link. Here, I've cleaned it up for you:<br>•
-        {"<br>• ".join(deamped_urls)}"""
-        body = f"It looks like your message contains a Google AMP link.. Here, I've cleaned it up for you:\n {"\n• ".join(deamped_urls)}"
+        html = (
+            f"<blockquote>"
+            f"It looks like your message contains a Google AMP link. Here's a clean link:<br>• "
+            f"{'<br>• '.join(deamped_urls)}"
+            f"</blockquote>"
+        )
+        body = (
+            f"> It looks like your message contains a Google AMP link. Here's a clean link:  \n> • "
+            f"{'  \n> • '.join(deamped_urls)}"
+        )
         content = TextMessageEventContent(
             msgtype=MessageType.NOTICE,
             format=Format.HTML,
             body=body,
-            formatted_body=f"{html}")
+            formatted_body=html)
         await evt.respond(content)
 
-    async def _extract_canonical_url_from_amp(self, url: str) -> str:
+    async def _extract_canonical_url(self, url: str) -> str:
         headers = {
             "Sec-GPC": "1",
             "accept-encoding": "gzip, deflate, br, zstd",
             "accept-language": "pl,en-US;q=0.7,en;q=0.3",
-            "user-agent": "Mozilla/5.0 (X11; Linux x86_64; rv:138.0) Gecko/20100101 Firefox/138.0"
+            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:139.0) Gecko/20100101 Firefox/139.0",
+            "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
         }
         try:
             response = await self.http.get(url, headers=headers, raise_for_status=True)
@@ -47,11 +55,14 @@ class SimpleAmputatorBot(Plugin):
         except ClientError as e:
             self.log.error(f"Connection Error: {e}")
             return ""
+        except Exception as e:
+            self.log.error(f"Unexpected Error: {e}")
+            return ""
 
         soup = BeautifulSoup(text, "html.parser")
         amp_link = None
         canonical_link = None
-        if soup.head is not None:
+        if soup and soup.head:
             amp_link = soup.head.find("link", rel="amphtml")
             amp_link = None if amp_link is None else amp_link["href"]
             canonical_link = soup.head.find("link", rel="canonical")
