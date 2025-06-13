@@ -1,6 +1,6 @@
 maubot: 0.1.0
 id: com.github.pkorba.simple_amputator
-version: 1.0.6
+version: 1.0.7
 license: MIT
 modules:
   - simple_amputator

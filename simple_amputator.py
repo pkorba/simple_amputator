@@ -1,3 +1,4 @@
+import asyncio
 from aiohttp import ClientError
 from maubot import Plugin, MessageEvent
 from maubot.handlers import command
@@ -14,10 +15,12 @@ class SimpleAmputatorBot(Plugin):
         await evt.mark_read()
         deamped_urls = []
         for url in matches:
-            deamped_url = await self._extract_canonical_url(url[1])
+            text = await self.fetch_page_content(url[1])
+            if not text:
+                return
+            deamped_url = await asyncio.get_event_loop().run_in_executor(None, self.extract_canonical_url, url[1], text)
             if deamped_url:
                 deamped_urls.append(deamped_url)
-
         if not deamped_urls:
             return
 
@@ -38,7 +41,7 @@ class SimpleAmputatorBot(Plugin):
             formatted_body=html)
         await evt.respond(content)
 
-    async def _extract_canonical_url(self, url: str) -> str:
+    async def fetch_page_content(self, url: str) -> str:
         headers = {
             "Sec-GPC": "1",
             "accept-encoding": "gzip, deflate, br, zstd",
@@ -49,7 +52,7 @@ class SimpleAmputatorBot(Plugin):
         try:
             response = await self.http.get(url, headers=headers, raise_for_status=True)
             if response.content_type in ["text/html", "application/xhtml+xml", "application/xml"]:
-                text = await response.text()
+                return await response.text()
             else:
                 return ""
         except ClientError as e:
@@ -59,6 +62,7 @@ class SimpleAmputatorBot(Plugin):
             self.log.error(f"Unexpected Error: {e}")
             return ""
 
+    def extract_canonical_url(self, url: str, text: str) -> str:
         soup = BeautifulSoup(text, "html.parser")
         amp_link = None
         canonical_link = None
@@ -68,13 +72,13 @@ class SimpleAmputatorBot(Plugin):
             canonical_link = soup.head.find("link", rel="canonical")
             canonical_link = None if canonical_link is None else canonical_link["href"]
 
-        if soup.find("html").has_attr("amp") or soup.find("html").has_attr("⚡") or await self._urls_match(amp_link, url):
+        if soup.find("html").has_attr("amp") or soup.find("html").has_attr("⚡") or self.urls_match(amp_link, url):
             if canonical_link and canonical_link != amp_link:
                 return canonical_link
         return ""
 
     @staticmethod
-    async def _urls_match(url_string: str, url_string2: str) -> bool:
+    def urls_match(url_string: str, url_string2: str) -> bool:
         if url_string is None or url_string2 is None:
             return False
         if url_string.endswith("/"):
