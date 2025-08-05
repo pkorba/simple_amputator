@@ -54,13 +54,12 @@ class SimpleAmputatorBot(Plugin):
         :return: canonical URL
         """
         soup = BeautifulSoup(text, "html.parser")
-        amp_link = None
-        canonical_link = None
-        if soup and soup.head:
-            amp_link = soup.head.find("link", rel="amphtml")
-            amp_link = None if amp_link is None else amp_link["href"]
-            canonical_link = soup.head.find("link", rel="canonical")
-            canonical_link = None if canonical_link is None else canonical_link["href"]
+        if not soup or not soup.head:
+            return ""
+        amp_link = soup.head.find("link", rel="amphtml")
+        amp_link = None if amp_link is None else amp_link["href"]
+        canonical_link = soup.head.find("link", rel="canonical")
+        canonical_link = None if canonical_link is None else canonical_link["href"]
 
         if soup.find("html").has_attr("amp") or soup.find("html").has_attr("⚡") or self.urls_match(amp_link, url):
             if canonical_link and canonical_link != amp_link:
