@@ -1,6 +1,6 @@
 # Simple Amputator Bot
 
-A maubot for Matrix messaging that automatically checks if messages sent in the chat contain Google AMP links. If so the bot responds with retrieved canonical links. It requires no configuration.
+A maubot plugin that automatically checks if messages sent in the chat contain Google AMP links. If so the bot responds with retrieved canonical links. It requires no configuration.
 
 ![bot_simple_amputator](https://github.com/user-attachments/assets/fa26167d-213d-47a9-8a6a-aea8af2d26c6)
 
