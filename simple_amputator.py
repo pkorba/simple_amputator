@@ -37,8 +37,7 @@ class SimpleAmputatorBot(Plugin):
             response = await self.http.get(url, headers=headers, raise_for_status=True)
             if response.content_type in ["text/html", "application/xhtml+xml", "application/xml"]:
                 return await response.text()
-            else:
-                return ""
+            return ""
         except ClientError as e:
             self.log.error(f"Connection Error: {e}")
             return ""
